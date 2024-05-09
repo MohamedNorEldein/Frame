@@ -107,4 +107,5 @@ void structure::solve()
         y[map_a[i]] = y1[i];
     }
     p = K * y;
+
 }
