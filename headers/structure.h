@@ -3,6 +3,13 @@
 #include "../Eigen/Dense"
 #include <vector>
 
+#ifdef CDLL
+    #define CDLL extern "C" __declspec(dllexport)
+#else 
+    #define CDLL extern "C" __declspec(dllimport)
+#endif
+
+
 typedef unsigned char UCHAR;
 
 class structure
@@ -34,3 +41,5 @@ public:
 
     void solve();
 };
+
+

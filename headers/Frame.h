@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 #include "structure.h"
 
 template <UCHAR DIMMINSION>
@@ -23,7 +23,6 @@ public:
         dis.setZero();
         nodalForce.setZero();
         support.setZero();
-
     }
     ~Node() = default;
 
@@ -37,7 +36,7 @@ public:
 
     static const size_t const getDIMMINSION()
     {
-        return dis.size();
+        return size_t(dis.size());
     }
 };
 
@@ -68,19 +67,20 @@ public:
     ~Member() {}
 
 public:
-    const Eigen::Matrix<double, DIMMINSION, DIMMINSION> &getGlopalK11()
+    Eigen::Matrix<double, DIMMINSION, DIMMINSION> getGlopalK11()
     {
+        std::cout<<"in \n"<<(TMT * K11) * TM<<'\n';
         return (TMT * K11) * TM;
     }
-    const Eigen::Matrix<double, DIMMINSION, DIMMINSION> &getGlopalK12()
+    Eigen::Matrix<double, DIMMINSION, DIMMINSION> getGlopalK12()
     {
         return (TMT * K12) * TM;
     }
-    const Eigen::Matrix<double, DIMMINSION, DIMMINSION> &getGlopalK21()
+    Eigen::Matrix<double, DIMMINSION, DIMMINSION> getGlopalK21()
     {
         return (TMT * K21) * TM;
     }
-    const Eigen::Matrix<double, DIMMINSION, DIMMINSION> &getGlopalK22()
+    Eigen::Matrix<double, DIMMINSION, DIMMINSION> getGlopalK22()
     {
         return (TMT * K22) * TM;
     }
@@ -119,7 +119,6 @@ public:
         {
             auto &m = members[i];
             buildMember(i);
-
             system.StructureAddStiffMat(m.iNode * DIMMINSION, m.jNode * DIMMINSION, m.getGlopalK11(), m.getGlopalK12(), m.getGlopalK21(), m.getGlopalK22());
         }
 
@@ -183,5 +182,20 @@ public:
         {
             m.print();
         }
+    }
+
+    double getNodeDis(size_t index, UCHAR i)
+    {
+        return nodes[index].dis[i];
+    }
+
+    double getMemberInternalAction_Start(size_t index, UCHAR i)
+    {
+        return members[index].IendForces[i];
+    }
+
+    double getMemberInternalAction_End(size_t index, UCHAR i)
+    {
+        return members[index].JendForces[i];
     }
 };
