@@ -103,7 +103,7 @@ public:
 
         size_t i = member.iNode;
         size_t j = member.jNode;
-        printf("%u %u \n", i, j);
+       
 
         auto &INode = nodes[i];
         auto &JNode = nodes[j];

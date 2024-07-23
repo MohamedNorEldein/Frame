@@ -1,5 +1,8 @@
 {
+    // CMake source directory configuration
     "cmake.sourceDirectory": "D:/projects/PROGRAMING/Frame/Source",
+    
+    // File associations for various C++ standard library headers and other files
     "files.associations": {
         "dense": "cpp",
         "core": "cpp",
@@ -76,5 +79,14 @@
         "xmemory": "cpp",
         "xtr1common": "cpp",
         "iterativelinearsolvers": "cpp"
-    }
+    },
+    
+    // Python-related settings
+   
+    "python.languageServer": "Pylance",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": false,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true
 }

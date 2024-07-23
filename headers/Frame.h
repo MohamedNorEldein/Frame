@@ -12,7 +12,7 @@ public:
     Eigen::Vector<bool, DIMMINSION> support;
 
 public:
-    Node(std::initializer_list<double> data)
+    Node(std::initializer_list<double> data) : dis(), pos(), nodalForce(), support()
     {
         UCHAR i = 0;
         for (auto &a : data)
@@ -20,23 +20,26 @@ public:
             pos[i] = a;
             i++;
         }
+
         dis.setZero();
         nodalForce.setZero();
         support.setZero();
     }
     ~Node() = default;
 
-    void setDis(UCHAR i, double value)
+    void setRestrain(UCHAR i, double value)
     {
         dis[i] = value;
         support[i] = 1;
     }
 
     void setNodalForce(UCHAR i, double value) { nodalForce[i] = value; }
+    double getNodalForce(UCHAR i) { return nodalForce[i]; }
 
+    
     static const size_t const getDIMMINSION()
     {
-        return size_t(dis.size());
+        return DIMMINSION;
     }
 };
 
@@ -69,7 +72,7 @@ public:
 public:
     Eigen::Matrix<double, DIMMINSION, DIMMINSION> getGlopalK11()
     {
-        std::cout<<"in \n"<<(TMT * K11) * TM<<'\n';
+
         return (TMT * K11) * TM;
     }
     Eigen::Matrix<double, DIMMINSION, DIMMINSION> getGlopalK12()
@@ -108,6 +111,26 @@ public:
     {
     }
 
+public:
+    size_t getMemberCount()
+    {
+        return members.size();
+    }
+    size_t getNodeCount()
+    {
+        return nodes.size();
+    }
+    MEMBER &getMember(UCHAR memberId)
+    {
+        return members[memberId];
+    }
+
+    NODE &getNode(UCHAR nodeId)
+    {
+        return nodes[nodeId];
+    }
+
+public:
     virtual void buildMember(size_t index) = 0;
 
     void solve()

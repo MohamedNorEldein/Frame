@@ -14,13 +14,14 @@ public:
     void print()
     {
         printf("Node\n"
+                "\tDimminsion %d\n"
 
                "\tposition \tx = %f \ty = %f\tz=%f\n"
                "\tnodal force \tpx = %f \tpy = %f \tpz = %f\n"
                "\tnodal Moment \tMx = %f \tMy = %f \tMz = %f\n"
-               "\tdisplacment \tdx = %f \tdy = %f \tdz = %f\n",
+               "\tdisplacment \tdx = %f \tdy = %f \tdz = %f\n"
                "\tdisplacment \tRx = %f \tRy = %f \tRz = %f\n",
-
+                getDIMMINSION(),
                pos[0], pos[1], pos[2],
                nodalForce[0], nodalForce[1], nodalForce[2],
                nodalForce[3], nodalForce[4], nodalForce[5],
@@ -36,6 +37,7 @@ class MemberF3D : public Member<6u>
 {
 public:
     double l, E, G, A, Ix, Iy, J;
+    double release[12u];
     Eigen::Vector<double, 3> LocalX;
 
     MemberF3D(size_t iNode, size_t jNode, double E, double G, double A, double Ix, double Iy, double J, const Eigen::Vector<double, 3> &Localx)
@@ -48,6 +50,10 @@ public:
 
         TM.setZero();
         LocalX = Localx;
+        for (UCHAR i = 0; i < 12; i++)
+        {
+            release[i] = 1.0;
+        }
     }
 
     MemberF3D(MemberF3D &) = default;
@@ -56,20 +62,24 @@ public:
     ~MemberF3D() {}
 
 public:
+    void setRelease(UCHAR nodeIndex, UCHAR index, double value)
+    {
+        release[nodeIndex * 6 + index] = value;
+    }
+
     void print()
     {
         printf("member\n"
-                "\tstart node %d , end node %d \n"
-                "\tE = %f \tG=%f\tA=%f \n"
-                "\tIx=%f\tIy=%f\tJ=%f\n"
-                "\tstart force in member \tQx = %f \tQy = %f \tN = %f\n"
-                "\tstart force in member \t Mx= %f \tMy = %f \tT = %f\n"
-                
-                "\n\tend force in member \tQx = %f \tQy = %f \tN = %f\n"
-                "\tend force in member \t Mx= %f \tMy = %f \tT = %f\n",
-               
+               "\tstart node %d , end node %d \n"
+               "\tE = %f \tG=%f\tA=%f \n"
+               "\tIx=%f\tIy=%f\tJ=%f\n"
+               "\tstart force in member \tQx = %f \tQy = %f \tN = %f\n"
+               "\tstart force in member \t Mx= %f \tMy = %f \tT = %f\n"
 
-               iNode, jNode, E,G, A, Ix, Iy, J,
+               "\n\tend force in member \tQx = %f \tQy = %f \tN = %f\n"
+               "\tend force in member \t Mx= %f \tMy = %f \tT = %f\n",
+
+               iNode, jNode, E, G, A, Ix, Iy, J,
                IendForces[0], IendForces[1], IendForces[2],
                IendForces[3], IendForces[4], IendForces[5],
                JendForces[0], JendForces[1], JendForces[2],
@@ -90,6 +100,7 @@ public:
 public:
     size_t addNode(std::initializer_list<double> data)
     {
+   
         nodes.push_back(NodeF3D(data));
         return nodes.size() - 1;
     }
@@ -116,7 +127,7 @@ public:
 
         size_t i = member.iNode;
         size_t j = member.jNode;
-        printf("%u %u \n", i, j);
+        printf("member3D %u %u \n", i, j);
 
         auto &INode = nodes[i];
         auto &JNode = nodes[j];
@@ -133,14 +144,13 @@ public:
 
         Eigen::Vector<double, 3> LocalY, LocalZ(ex, ey, ez);
         Eigen::Vector<double, 3> &LocalX = member.LocalX;
-        
-        //create and normalize local system
+
+        // create and normalize local system
         LocalY = LocalX.cross(LocalZ);
         LocalY.normalize();
         LocalX = LocalZ.cross(LocalY);
 
-        member.TM << 
-            LocalX[0], LocalY[0], LocalZ[0], 0, 0, 0,
+        member.TM << LocalX[0], LocalY[0], LocalZ[0], 0, 0, 0,
             LocalX[1], LocalY[1], LocalZ[1], 0, 0, 0,
             LocalX[2], LocalY[2], LocalZ[2], 0, 0, 0,
 
@@ -162,15 +172,17 @@ public:
         By = 6 * member.E * member.Iy / member.l / member.l;
         Cy = 4 * member.E * member.Iy / member.l;
 
-        //printf("s = %f\n", S);
+        // printf("s = %f\n", S);
         /******************** K11 ************************/
         member.K11(0, 0) = Ay;
         member.K11(0, 4) = By;
+
         member.K11(4, 0) = By;
         member.K11(4, 4) = Cy;
 
         member.K11(1, 1) = Ax;
         member.K11(1, 3) = Bx;
+
         member.K11(3, 1) = Bx;
         member.K11(3, 3) = Cx;
 
@@ -178,7 +190,7 @@ public:
 
         member.K11(5, 5) = G;
 
-        /******************** K11 ************************/
+        /******************** K12 ************************/
         member.K12(0, 0) = -Ay;
         member.K12(0, 4) = By;
         member.K12(4, 0) = -By;
@@ -193,7 +205,7 @@ public:
 
         member.K12(5, 5) = -G;
 
-        /******************** K11 ************************/
+        /******************** K21 ************************/
         member.K21(0, 0) = -Ay;
         member.K21(0, 4) = -By;
         member.K21(4, 0) = By;
@@ -207,7 +219,7 @@ public:
         member.K21(2, 2) = -S;
 
         member.K21(5, 5) = -G;
-        /******************** K11 ************************/
+        /******************** K22 ************************/
         member.K22(0, 0) = Ay;
         member.K22(0, 4) = -By;
         member.K22(4, 0) = -By;
@@ -221,7 +233,5 @@ public:
         member.K22(2, 2) = S;
 
         member.K22(5, 5) = G;
-        
-    
     }
 };
